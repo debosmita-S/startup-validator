@@ -4,9 +4,48 @@ import re
 from config import settings
 from models import AnalysisResult, SwotAnalysis, PivotResponse, PivotStrategy
 
+# Default production-supported model for 2026.
+# If this is missing from list_models() at startup, verify_gemini_model will automatically fall back.
+GEMINI_MODEL = "gemini-2.5-flash"
+
 
 def configure_gemini():
     genai.configure(api_key=settings.gemini_api_key)
+
+
+def verify_gemini_model():
+    """Verify Gemini configuration and model availability, falling back if default is missing."""
+    global GEMINI_MODEL
+    try:
+        configure_gemini()
+        # Query list of models from API
+        models = [m.name for m in genai.list_models()]
+        expected_model = f"models/{GEMINI_MODEL}"
+        
+        if expected_model in models:
+            print(f"[Gemini Config] Selected model '{GEMINI_MODEL}' is verified and available.")
+        else:
+            # Look for any alternative active flash models
+            flash_models = [m.name.replace("models/", "") for m in genai.list_models() if "flash" in m.name.lower()]
+            if flash_models:
+                fallback = flash_models[0]
+                print(f"[Gemini Config] WARNING: Default model '{GEMINI_MODEL}' is not available. Falling back to: '{fallback}'")
+                GEMINI_MODEL = fallback
+            else:
+                # Look for other text generation models if no flash is found
+                text_models = [m.name.replace("models/", "") for m in genai.list_models() if "generateContent" in m.supported_generation_methods]
+                if text_models:
+                    fallback = text_models[0]
+                    print(f"[Gemini Config] WARNING: No flash models found. Falling back to text model: '{fallback}'")
+                    GEMINI_MODEL = fallback
+                else:
+                    raise ValueError(f"No generation models found in your credentials: {models}")
+    except Exception as e:
+        print(f"[Gemini Config] CRITICAL: Gemini credentials or setup failed verification: {e}")
+        # Log stack trace for developer reference
+        import traceback
+        traceback.print_exc()
+        raise e
 
 
 def build_prompt(idea: str, description: str) -> str:
@@ -68,7 +107,8 @@ import traceback
 
 async def analyze_idea(idea: str, description: str) -> AnalysisResult:
     print(f"[Gemini Service] Initializing GenerativeModel...")
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    print(f"[Gemini Service] Initializing GenerativeModel with model '{GEMINI_MODEL}'...")
+    model = genai.GenerativeModel(GEMINI_MODEL)
 
     prompt = build_prompt(idea, description)
     print(f"[Gemini Service] Generated prompt (length: {len(prompt)} characters)")
@@ -124,8 +164,8 @@ async def analyze_idea(idea: str, description: str) -> AnalysisResult:
 
 
 async def generate_pivot_strategies(idea: str, viability_score: int) -> PivotResponse:
-    print(f"[Gemini Service - Pivot] Initializing GenerativeModel...")
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    print(f"[Gemini Service - Pivot] Initializing GenerativeModel with model '{GEMINI_MODEL}'...")
+    model = genai.GenerativeModel(GEMINI_MODEL)
 
     prompt = build_pivot_prompt(idea, viability_score)
     print(f"[Gemini Service - Pivot] Generated prompt (length: {len(prompt)} characters)")

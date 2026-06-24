@@ -5,17 +5,17 @@ import os
 from database import connect_db, close_db
 from routers.analysis import router as analysis_router
 from routers.auth import router as auth_router
-from services.gemini_service import configure_gemini
+from services.gemini_service import configure_gemini, verify_gemini_model
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Configure Gemini API on startup
+    # Configure and verify Gemini model on startup
     try:
-        configure_gemini()
-        print("--- Gemini API configured successfully ---")
+        verify_gemini_model()
+        print("--- Gemini API verified and configured successfully ---")
     except Exception as e:
-        print(f"--- Warning: Failed to configure Gemini API: {e} ---")
+        print(f"--- Warning: Failed to configure/verify Gemini API: {e} ---")
 
     # Disabled loading the 106MB unused ML model to avoid OOM errors in production
     # models_dir = os.path.join(os.path.dirname(__file__), "models")

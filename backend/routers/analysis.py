@@ -40,7 +40,7 @@ async def create_analysis(request: AnalysisRequest, user_id: str = Depends(get_c
         print(f"CRITICAL: Gemini analysis failed. Exception:\n{tb}")
         raise HTTPException(
             status_code=500,
-            detail=f"AI analysis failed: {str(e)}"
+            detail="AI service is temporarily unavailable. Please try again later."
         )
 
     doc = {
@@ -91,7 +91,7 @@ async def create_pivot(request: PivotRequest, user_id: str = Depends(get_current
         print(f"CRITICAL: Gemini pivot failed. Exception:\n{tb}")
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to generate pivot strategies: {str(e)}"
+            detail="AI service is temporarily unavailable. Please try again later."
         )
 
 
