@@ -68,9 +68,17 @@ async def request_otp(req: OTPRequest):
         upsert=True
     )
 
+    import os
+    try:
+        debug_dir = os.path.dirname(os.path.dirname(__file__))
+        with open(os.path.join(debug_dir, "otp_debug.txt"), "w") as f:
+            f.write(otp)
+    except Exception as e:
+        print(f"Failed to write debug OTP file: {e}")
+
     # SIMULATION: Send OTP via SMS or Email
     print("\n" + "="*50)
-    print(f"🔐 SIMULATED OTP DELIVERY 🔐")
+    print("SIMULATED OTP DELIVERY")
     print(f"To: {req.identifier}")
     print(f"Your Startup Idea Validator code is: {otp}")
     print("="*50 + "\n")
