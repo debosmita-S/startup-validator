@@ -1,4 +1,4 @@
-# Startup Idea Validator 🚀
+# Startup Idea Validator 
 
 An AI-powered full-stack web app that analyzes startup ideas using **Google Gemini**, providing instant market analysis, SWOT, competitor overview, monetization strategies, and a viability score.
 
@@ -76,12 +76,12 @@ npm run dev
 
 ## Features
 
-- 🧠 **AI Analysis** — 7-section structured analysis via Gemini 1.5 Flash  
-- 📊 **Viability Score** — Animated circular gauge (0–100)  
-- 🔄 **SWOT Grid** — Color-coded Strengths, Weaknesses, Opportunities, Threats  
-- 💾 **MongoDB Storage** — Auto-saves every analysis  
-- 📋 **History Page** — Browse, view, and delete past analyses  
-- 🎨 **Dark Glass UI** — Premium glassmorphism design with animations
+- 🔴 **AI Analysis** — 7-section structured analysis via Gemini 1.5 Flash  
+- 🟠 **Viability Score** — Animated circular gauge (0–100)  
+- 🟡 **SWOT Grid** — Color-coded Strengths, Weaknesses, Opportunities, Threats  
+- 🟢 **MongoDB Storage** — Auto-saves every analysis  
+- 🔵 **History Page** — Browse, view, and delete past analyses  
+- 🟣 **Dark Glass UI** — Premium glassmorphism design with animations
 
 ---
 
