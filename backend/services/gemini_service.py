@@ -65,20 +65,25 @@ Return ONLY a valid JSON object (no markdown, no code blocks, no extra text) wit
 
 
 async def analyze_idea(idea: str, description: str) -> AnalysisResult:
-    configure_gemini()
-    model = genai.GenerativeModel("gemini-flash-latest")
+    model = genai.GenerativeModel("gemini-1.5-flash")
 
     prompt = build_prompt(idea, description)
 
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(
-            temperature=0.7,
-            max_output_tokens=4096,
-        ),
-    )
+    try:
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.7,
+                max_output_tokens=4096,
+                response_mime_type="application/json",
+            ),
+        )
+    except Exception as e:
+        print(f"Gemini API error during analyze_idea: {e}")
+        raise e
 
     raw_text = response.text.strip()
+    # Support clean fallback if markdown tags are present despite mime-type config
     raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
     raw_text = re.sub(r"\s*```$", "", raw_text)
     raw_text = raw_text.strip()
@@ -104,18 +109,22 @@ async def analyze_idea(idea: str, description: str) -> AnalysisResult:
 
 
 async def generate_pivot_strategies(idea: str, viability_score: int) -> PivotResponse:
-    configure_gemini()
-    model = genai.GenerativeModel("gemini-flash-latest")
+    model = genai.GenerativeModel("gemini-1.5-flash")
 
     prompt = build_pivot_prompt(idea, viability_score)
 
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(
-            temperature=0.9,
-            max_output_tokens=2048,
-        ),
-    )
+    try:
+        response = await model.generate_content_async(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=0.9,
+                max_output_tokens=2048,
+                response_mime_type="application/json",
+            ),
+        )
+    except Exception as e:
+        print(f"Gemini API error during generate_pivot_strategies: {e}")
+        raise e
 
     raw_text = response.text.strip()
     raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)

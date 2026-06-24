@@ -2,24 +2,33 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import os
-import joblib
 from database import connect_db, close_db
 from routers.analysis import router as analysis_router
 from routers.auth import router as auth_router
+from services.gemini_service import configure_gemini
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Load ML models into app state
-    models_dir = os.path.join(os.path.dirname(__file__), "models")
+    # Configure Gemini API on startup
     try:
-        app.state.startup_model = joblib.load(os.path.join(models_dir, "startup_success_model.pkl"))
-        app.state.model_features = joblib.load(os.path.join(models_dir, "model_features.pkl"))
-        print("--- ML models loaded successfully ---")
+        configure_gemini()
+        print("--- Gemini API configured successfully ---")
     except Exception as e:
-        print(f"--- Warning: Failed to load ML models: {e} ---")
-        app.state.startup_model = None
-        app.state.model_features = None
+        print(f"--- Warning: Failed to configure Gemini API: {e} ---")
+
+    # Disabled loading the 106MB unused ML model to avoid OOM errors in production
+    # models_dir = os.path.join(os.path.dirname(__file__), "models")
+    # try:
+    #     import joblib
+    #     app.state.startup_model = joblib.load(os.path.join(models_dir, "startup_success_model.pkl"))
+    #     app.state.model_features = joblib.load(os.path.join(models_dir, "model_features.pkl"))
+    #     print("--- ML models loaded successfully ---")
+    # except Exception as e:
+    #     print(f"--- Warning: Failed to load ML models: {e} ---")
+    
+    app.state.startup_model = None
+    app.state.model_features = None
 
     await connect_db()
     yield

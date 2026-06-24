@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 from database import get_db
 from models import AnalysisRequest, AnalysisDocument, PivotRequest, PivotResponse
 from services.gemini_service import analyze_idea, generate_pivot_strategies
@@ -38,7 +38,7 @@ async def create_analysis(request: AnalysisRequest, user_id: str = Depends(get_c
         "description": request.description or "",
         "analysis_results": result.model_dump(),
         "viability_score": result.viability_score,
-        "timestamp": datetime.utcnow(),
+        "timestamp": datetime.now(timezone.utc).replace(tzinfo=None),
     }
 
     db = get_db()

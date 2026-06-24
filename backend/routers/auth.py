@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import jwt
 import random
 import bcrypt
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 security = HTTPBearer()
 
 # JWT Settings
-SECRET_KEY = settings.gemini_api_key  # In a real app, use a strong, dedicated JWT secret
+SECRET_KEY = settings.jwt_secret
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
@@ -22,9 +22,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc).replace(tzinfo=None) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -58,7 +58,7 @@ async def request_otp(req: OTPRequest):
     hashed_otpBytes = bcrypt.hashpw(otp_bytes, salt)
     hashed_otp = hashed_otpBytes.decode('utf-8')
     
-    expire_at = datetime.utcnow() + timedelta(minutes=5)
+    expire_at = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=5)
 
     db = get_db()
     # Upsert the OTP document
@@ -90,7 +90,7 @@ async def verify_otp(req: OTPVerify):
     if not otp_doc:
         raise HTTPException(status_code=400, detail="No OTP requested for this identifier")
 
-    if datetime.utcnow() > otp_doc["expire_at"]:
+    if datetime.now(timezone.utc).replace(tzinfo=None) > otp_doc["expire_at"]:
         await db.otps.delete_one({"_id": otp_doc["_id"]})
         raise HTTPException(status_code=400, detail="OTP expired")
 

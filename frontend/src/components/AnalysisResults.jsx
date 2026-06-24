@@ -20,7 +20,7 @@ export default function AnalysisResults({ analysis }) {
     return (
         <div className="w-full">
             <motion.div
-                className="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-6"
+                className="grid grid-cols-1 md:grid-cols-3 gap-6"
                 initial="hidden"
                 animate="visible"
                 variants={{
@@ -31,20 +31,54 @@ export default function AnalysisResults({ analysis }) {
                 <motion.div
                     variants={cardVariants}
                     whileHover="hover"
-                    className="brutal-card p-6 md:col-span-1 md:row-span-1 bg-yellow-100 flex flex-col justify-center items-center text-center relative overflow-hidden"
+                    className="brutal-card p-6 md:col-span-1 bg-yellow-100 flex flex-col justify-center items-center text-center relative overflow-hidden"
                 >
                     <div className="absolute top-0 left-0 w-full h-2 bg-brandPrimary"></div>
-                    <h3 className="text-sm font-mono font-bold uppercase mb-2">Market Score</h3>
+                    <h3 className="text-sm font-mono font-bold uppercase mb-2">Viability Score</h3>
                     <div className="text-7xl font-black text-borderDark tracking-tighter" style={{ WebkitTextStroke: '2px #000', color: finalScore >= 70 ? '#10B981' : finalScore >= 50 ? '#F59E0B' : '#EF4444' }}>
                         {finalScore}
                     </div>
+                </motion.div>
+
+                {/* MARKET ANALYSIS BENTO TILE */}
+                <motion.div
+                    variants={cardVariants}
+                    whileHover="hover"
+                    className="brutal-card p-6 md:col-span-2 bg-emerald-100 relative"
+                >
+                    <div className="absolute -top-4 -right-4 text-7xl transform -rotate-12 drop-shadow-[4px_4px_0_rgba(0,0,0,1)]">
+                        📈
+                    </div>
+                    <h3 className="text-2xl font-black uppercase mb-4 border-b-4 border-borderDark inline-block pb-1">
+                        <TextScramble text="Market Analysis" />
+                    </h3>
+                    <p className="font-mono text-sm leading-relaxed max-w-prose font-semibold">
+                        {result.market_analysis}
+                    </p>
+                </motion.div>
+
+                {/* TARGET USERS BENTO TILE */}
+                <motion.div
+                    variants={cardVariants}
+                    whileHover="hover"
+                    className="brutal-card p-6 md:col-span-1 bg-sky-100 flex flex-col relative"
+                >
+                    <div className="absolute -top-4 -right-4 text-7xl transform rotate-6 drop-shadow-[4px_4px_0_rgba(0,0,0,1)]">
+                        👥
+                    </div>
+                    <h3 className="text-2xl font-black uppercase mb-4 border-b-4 border-borderDark inline-block pb-1">
+                        <TextScramble text="Target Users" />
+                    </h3>
+                    <p className="font-mono text-sm leading-relaxed font-semibold">
+                        {result.target_users}
+                    </p>
                 </motion.div>
 
                 {/* COMPETITORS BENTO TILE */}
                 <motion.div
                     variants={cardVariants}
                     whileHover="hover"
-                    className="brutal-card p-6 md:col-span-2 md:row-span-1 bg-[#F5F5F5] relative"
+                    className="brutal-card p-6 md:col-span-2 bg-[#F5F5F5] relative"
                 >
                     <div className="absolute -top-4 -right-4 text-7xl transform rotate-12 drop-shadow-[4px_4px_0_rgba(0,0,0,1)]">
                         🦈
@@ -61,7 +95,7 @@ export default function AnalysisResults({ analysis }) {
                 <motion.div
                     variants={cardVariants}
                     whileHover="hover"
-                    className="brutal-card p-6 md:col-span-2 md:row-span-1 bg-white"
+                    className="brutal-card p-6 md:col-span-2 bg-white"
                 >
                     <h3 className="text-2xl font-black uppercase mb-4 border-b-4 border-borderDark inline-block pb-1">
                         <TextScramble text="SWOT Matrix" />
@@ -98,7 +132,7 @@ export default function AnalysisResults({ analysis }) {
                 <motion.div
                     variants={cardVariants}
                     whileHover="hover"
-                    className="brutal-card p-6 md:col-span-1 md:row-span-1 bg-purple-100 flex flex-col group"
+                    className="brutal-card p-6 md:col-span-1 bg-purple-100 flex flex-col group"
                 >
                     <div className="flex items-center gap-3 mb-4">
                         <div className="text-4xl filter grayscale group-hover:grayscale-0 transition-all duration-300 drop-shadow-[2px_2px_0_rgba(0,0,0,1)]">
@@ -110,6 +144,23 @@ export default function AnalysisResults({ analysis }) {
                     </div>
                     <p className="font-mono text-sm leading-relaxed font-semibold">
                         {result.monetization}
+                    </p>
+                </motion.div>
+
+                {/* TECHNICAL ARCHITECTURE BENTO TILE */}
+                <motion.div
+                    variants={cardVariants}
+                    whileHover="hover"
+                    className="brutal-card p-6 md:col-span-3 bg-rose-100 relative"
+                >
+                    <div className="absolute -top-4 -right-4 text-7xl transform rotate-12 drop-shadow-[4px_4px_0_rgba(0,0,0,1)]">
+                        ⚙️
+                    </div>
+                    <h3 className="text-2xl font-black uppercase mb-4 border-b-4 border-borderDark inline-block pb-1">
+                        <TextScramble text="Technical Architecture" />
+                    </h3>
+                    <p className="font-mono text-sm leading-relaxed max-w-prose font-semibold">
+                        {result.technical_architecture}
                     </p>
                 </motion.div>
             </motion.div>

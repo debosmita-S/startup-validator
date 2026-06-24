@@ -65,6 +65,42 @@ export default function HistoryPage() {
         }
     };
 
+    if (!isAuthenticated) {
+        return (
+            <div className="max-w-5xl mx-auto px-4 py-8 mt-16 flex flex-col items-center">
+                <div className="flex items-center gap-4 mb-10 border-b-4 border-borderDark pb-6 w-full">
+                    <div className="w-12 h-12 flex items-center justify-center bg-[#8b5cf6] border-2 border-borderDark shadow-[2px_2px_0_0_#000]">
+                        <History size={24} className="text-white" strokeWidth={3} />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-black text-borderDark uppercase tracking-tighter">Analysis History</h1>
+                        <p className="text-sm font-mono font-bold text-gray-500">All your saved startup validations</p>
+                    </div>
+                </div>
+
+                <div className="brutal-card p-12 text-center bg-white max-w-xl w-full mx-auto relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-3 bg-brandPrimary"></div>
+                    <LockKeyhole size={64} className="mx-auto text-brandPrimary mb-6" strokeWidth={3} />
+                    <h3 className="text-3xl font-black text-borderDark mb-4 uppercase tracking-tight">Access Locked</h3>
+                    <p className="text-gray-600 font-mono text-sm mb-8 font-bold leading-relaxed">
+                        Authentication is required to view your analysis history. Sign up or log in to securely save and access your reports.
+                    </p>
+                    <button
+                        onClick={() => setIsLoginModalOpen(true)}
+                        className="btn-primary w-full md:w-auto"
+                    >
+                        LOGIN / SIGN UP
+                    </button>
+                </div>
+
+                <LoginModal
+                    isOpen={isLoginModalOpen}
+                    onClose={() => setIsLoginModalOpen(false)}
+                />
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-5xl mx-auto px-4 py-8 mt-16">
             {/* Header */}
