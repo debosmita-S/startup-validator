@@ -1,3 +1,4 @@
+import traceback
 from fastapi import APIRouter, HTTPException, Depends
 from bson import ObjectId
 from datetime import datetime, timezone
@@ -21,12 +22,22 @@ def doc_to_dict(doc: dict) -> dict:
 @router.post("/analyze")
 async def create_analysis(request: AnalysisRequest, user_id: str = Depends(get_current_user)):
     """Submit a startup idea for AI analysis and save result to MongoDB under current user."""
+    print(f"\n--- [POST /api/analyze] Incoming Request ---")
+    print(f"User ID: {user_id}")
+    print(f"Idea Concept: {request.idea}")
+    print(f"Description: {request.description}")
+
     if not request.idea.strip():
+        print("Error: Request idea is empty")
         raise HTTPException(status_code=400, detail="Idea cannot be empty")
 
     try:
+        print("Calling Gemini service for analysis...")
         result = await analyze_idea(request.idea, request.description or "")
+        print("Gemini analysis completed successfully")
     except Exception as e:
+        tb = traceback.format_exc()
+        print(f"CRITICAL: Gemini analysis failed. Exception:\n{tb}")
         raise HTTPException(
             status_code=500,
             detail=f"AI analysis failed: {str(e)}"
@@ -41,25 +52,43 @@ async def create_analysis(request: AnalysisRequest, user_id: str = Depends(get_c
         "timestamp": datetime.now(timezone.utc).replace(tzinfo=None),
     }
 
-    db = get_db()
-    inserted = await db.analyses.insert_one(doc)
-    doc["id"] = str(inserted.inserted_id)
-    doc["timestamp"] = doc["timestamp"].isoformat()
-    del doc["_id"]
-
-    return doc
+    try:
+        print("Inserting analysis document into MongoDB...")
+        db = get_db()
+        inserted = await db.analyses.insert_one(doc)
+        doc["id"] = str(inserted.inserted_id)
+        doc["timestamp"] = doc["timestamp"].isoformat()
+        del doc["_id"]
+        print(f"Successfully saved analysis record. ID: {doc['id']}")
+        return doc
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(f"CRITICAL: MongoDB insertion failed. Exception:\n{tb}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database save failed: {str(e)}"
+        )
 
 
 @router.post("/pivot", response_model=PivotResponse)
 async def create_pivot(request: PivotRequest, user_id: str = Depends(get_current_user)):
     """Generate pivot strategies for a given startup idea."""
+    print(f"\n--- [POST /api/pivot] Incoming Request ---")
+    print(f"User ID: {user_id}")
+    print(f"Idea: {request.idea}, Viability Score: {request.viability_score}")
+
     if not request.idea.strip():
+        print("Error: Request idea is empty")
         raise HTTPException(status_code=400, detail="Idea cannot be empty")
 
     try:
+        print("Calling Gemini service for pivot generation...")
         result = await generate_pivot_strategies(request.idea, request.viability_score)
+        print("Gemini pivot generation completed successfully")
         return result
     except Exception as e:
+        tb = traceback.format_exc()
+        print(f"CRITICAL: Gemini pivot failed. Exception:\n{tb}")
         raise HTTPException(
             status_code=500,
             detail=f"Failed to generate pivot strategies: {str(e)}"

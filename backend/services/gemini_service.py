@@ -64,12 +64,17 @@ Return ONLY a valid JSON object (no markdown, no code blocks, no extra text) wit
 """
 
 
+import traceback
+
 async def analyze_idea(idea: str, description: str) -> AnalysisResult:
+    print(f"[Gemini Service] Initializing GenerativeModel...")
     model = genai.GenerativeModel("gemini-1.5-flash")
 
     prompt = build_prompt(idea, description)
+    print(f"[Gemini Service] Generated prompt (length: {len(prompt)} characters)")
 
     try:
+        print("[Gemini Service] Sending async content generation request to Google Gemini API...")
         response = await model.generate_content_async(
             prompt,
             generation_config=genai.types.GenerationConfig(
@@ -78,42 +83,55 @@ async def analyze_idea(idea: str, description: str) -> AnalysisResult:
                 response_mime_type="application/json",
             ),
         )
+        print("[Gemini Service] Received response successfully")
     except Exception as e:
-        print(f"Gemini API error during analyze_idea: {e}")
+        tb = traceback.format_exc()
+        print(f"[Gemini Service] CRITICAL ERROR during generate_content_async:\n{tb}")
         raise e
 
-    raw_text = response.text.strip()
-    # Support clean fallback if markdown tags are present despite mime-type config
-    raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
-    raw_text = re.sub(r"\s*```$", "", raw_text)
-    raw_text = raw_text.strip()
+    try:
+        raw_text = response.text.strip()
+        print(f"[Gemini Service] Raw response content (length: {len(raw_text)}):")
+        print(f"--- Raw Text Start ---\n{raw_text}\n--- Raw Text End ---")
+        
+        # Support clean fallback if markdown tags are present despite mime-type config
+        raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+        raw_text = re.sub(r"\s*```$", "", raw_text)
+        raw_text = raw_text.strip()
 
-    data = json.loads(raw_text)
+        data = json.loads(raw_text)
+        
+        swot = SwotAnalysis(
+            strengths=data["swot"]["strengths"],
+            weaknesses=data["swot"]["weaknesses"],
+            opportunities=data["swot"]["opportunities"],
+            threats=data["swot"]["threats"],
+        )
 
-    swot = SwotAnalysis(
-        strengths=data["swot"]["strengths"],
-        weaknesses=data["swot"]["weaknesses"],
-        opportunities=data["swot"]["opportunities"],
-        threats=data["swot"]["threats"],
-    )
-
-    return AnalysisResult(
-        market_analysis=data["market_analysis"],
-        competitors=data["competitors"],
-        target_users=data["target_users"],
-        swot=swot,
-        monetization=data["monetization"],
-        technical_architecture=data["technical_architecture"],
-        viability_score=int(data["viability_score"]),
-    )
+        return AnalysisResult(
+            market_analysis=data["market_analysis"],
+            competitors=data["competitors"],
+            target_users=data["target_users"],
+            swot=swot,
+            monetization=data["monetization"],
+            technical_architecture=data["technical_architecture"],
+            viability_score=int(data["viability_score"]),
+        )
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(f"[Gemini Service] ERROR parsing raw text response:\n{tb}")
+        raise e
 
 
 async def generate_pivot_strategies(idea: str, viability_score: int) -> PivotResponse:
+    print(f"[Gemini Service - Pivot] Initializing GenerativeModel...")
     model = genai.GenerativeModel("gemini-1.5-flash")
 
     prompt = build_pivot_prompt(idea, viability_score)
+    print(f"[Gemini Service - Pivot] Generated prompt (length: {len(prompt)} characters)")
 
     try:
+        print("[Gemini Service - Pivot] Sending async content generation request to Google Gemini API...")
         response = await model.generate_content_async(
             prompt,
             generation_config=genai.types.GenerationConfig(
@@ -122,20 +140,30 @@ async def generate_pivot_strategies(idea: str, viability_score: int) -> PivotRes
                 response_mime_type="application/json",
             ),
         )
+        print("[Gemini Service - Pivot] Received response successfully")
     except Exception as e:
-        print(f"Gemini API error during generate_pivot_strategies: {e}")
+        tb = traceback.format_exc()
+        print(f"[Gemini Service - Pivot] CRITICAL ERROR during generate_content_async:\n{tb}")
         raise e
 
-    raw_text = response.text.strip()
-    raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
-    raw_text = re.sub(r"\s*```$", "", raw_text)
-    raw_text = raw_text.strip()
+    try:
+        raw_text = response.text.strip()
+        print(f"[Gemini Service - Pivot] Raw response content (length: {len(raw_text)}):")
+        print(f"--- Raw Text Start ---\n{raw_text}\n--- Raw Text End ---")
+        
+        raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+        raw_text = re.sub(r"\s*```$", "", raw_text)
+        raw_text = raw_text.strip()
 
-    data = json.loads(raw_text)
+        data = json.loads(raw_text)
 
-    strategies = [
-        PivotStrategy(title=s["title"], description=s["description"])
-        for s in data["strategies"]
-    ]
+        strategies = [
+            PivotStrategy(title=s["title"], description=s["description"])
+            for s in data["strategies"]
+        ]
 
-    return PivotResponse(strategies=strategies)
+        return PivotResponse(strategies=strategies)
+    except Exception as e:
+        tb = traceback.format_exc()
+        print(f"[Gemini Service - Pivot] ERROR parsing raw text response:\n{tb}")
+        raise e

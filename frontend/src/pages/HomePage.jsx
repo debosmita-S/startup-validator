@@ -5,8 +5,12 @@ import AnalysisResults from '../components/AnalysisResults';
 import ParticleBackground from '../components/ParticleBackground';
 import { analyzeIdea } from '../services/api';
 import { AlertCircle, RotateCcw } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import LoginModal from '../components/LoginModal';
 
 export default function HomePage() {
+    const { isAuthenticated } = useAuth();
+    const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [progress, setProgress] = useState(0);
     const [analysis, setAnalysis] = useState(null);
@@ -28,18 +32,40 @@ export default function HomePage() {
     }, [isLoading]);
 
     const handleSubmit = async (idea, description) => {
+        if (!isAuthenticated) {
+            console.log("Guest validation click intercepted - opening login modal");
+            setIsLoginModalOpen(true);
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
         setAnalysis(null);
 
+        // Debug logging for request configuration
+        const targetUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/analyze`;
+        console.log(`[API Request Initiated] URL: ${targetUrl}`, { idea, description });
+
         try {
             const result = await analyzeIdea(idea, description);
+            console.log("[API Request Succeeded] Response data:", result);
             setProgress(100);
             setTimeout(() => {
                 setAnalysis(result);
                 setIsLoading(false);
             }, 800);
         } catch (err) {
+            console.error("[API Request Failed] Error Details:", {
+                message: err.message,
+                status: err.response?.status,
+                statusText: err.response?.statusText,
+                responseData: err.response?.data,
+                requestConfig: {
+                    url: err.config?.url,
+                    method: err.config?.method,
+                    headers: err.config?.headers,
+                }
+            });
             const msg = err.response?.data?.detail || err.message || 'Analysis failed. Please try again.';
             setError(msg);
             setIsLoading(false);
@@ -107,6 +133,11 @@ export default function HomePage() {
                     </div>
                 )}
             </div>
+
+            <LoginModal
+                isOpen={isLoginModalOpen}
+                onClose={() => setIsLoginModalOpen(false)}
+            />
         </div>
     );
 }
