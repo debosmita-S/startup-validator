@@ -1,0 +1,11 @@
+# Netlify configuration for Startup Idea Validator frontend
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Redirect rules to support React Router SPA routing fallback on page refreshes
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
